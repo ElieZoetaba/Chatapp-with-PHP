@@ -1,36 +1,30 @@
 <?php 
-  session_start();
-  if(isset($_SESSION['unique_id'])){
-    header("location: users.php");
-  }
+    session_start();
+    include_once "config.php";
+    $email = mysqli_real_escape_string($conn, $_POST['email']);
+    $password = mysqli_real_escape_string($conn, $_POST['password']);
+    if(!empty($email) && !empty($password)){
+        $sql = mysqli_query($conn, "SELECT * FROM users WHERE email = '{$email}'");
+        if(mysqli_num_rows($sql) > 0){
+            $row = mysqli_fetch_assoc($sql);
+            $user_pass = md5($password);
+            $enc_pass = $row['password'];
+            if($user_pass === $enc_pass){
+                $status = "Active now";
+                $sql2 = mysqli_query($conn, "UPDATE users SET status = '{$status}' WHERE unique_id = {$row['unique_id']}");
+                if($sql2){
+                    $_SESSION['unique_id'] = $row['unique_id'];
+                    echo "success";
+                }else{
+                    echo "Quelque chose s'est mal passé. Veuillez réessayer!";
+                }
+            }else{
+                echo "E-mail ou mot de passe incorrect!";
+            }
+        }else{
+            echo "$email - Cet e-mail n'existe pas!";
+        }
+    }else{
+        echo "Tous les champs de saisie sont obligatoires!";
+    }
 ?>
-
-<?php include_once "header.php"; ?>
-<body>
-  <div class="wrapper">
-    <section class="form login">
-      <header>Chat App</header>
-      <form action="#" method="POST" enctype="multipart/form-data" autocomplete="off">
-        <div class="error-text"></div>
-        <div class="field input">
-          <label>Adresse e-mail</label>
-          <input type="text" name="email" placeholder="Enter your email" required>
-        </div>
-        <div class="field input">
-          <label>Mots de passe</label>
-          <input type="password" name="password" placeholder="Enter your password" required>
-          <i class="fas fa-eye"></i>
-        </div>
-        <div class="field button">
-          <input type="submit" name="submit" value="Continuer à discuter">
-        </div>
-      </form>
-      <div class="link">Pas encore inscrit? <a href="index.php">S'inscrire maintenant</a></div>
-    </section>
-  </div>
-  
-  <script src="javascript/pass-show-hide.js"></script>
-  <script src="javascript/login.js"></script>
-
-</body>
-</html>
